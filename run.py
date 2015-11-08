@@ -2,7 +2,7 @@ import asyncio
 import aiopg
 import psycopg2
 
-dsn = 'dbname=viserlalune user=*** password=*** host=127.0.0.1'
+from config import dsn
 
 @asyncio.coroutine
 def go():
