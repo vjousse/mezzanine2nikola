@@ -1,18 +1,23 @@
 import asyncio
 import aiopg
 import psycopg2
+import os
 
 from config import dsn
 
 @asyncio.coroutine
 def go():
+
+    if not os.path.exists('posts'):
+        os.makedirs('posts')
+
     pool = yield from aiopg.create_pool(dsn)
     with (yield from pool.cursor(cursor_factory=psycopg2.extras.DictCursor)) as cur:
         yield from cur.execute("SELECT slug, content, title, publish_date FROM blog_blogpost")
         rows = yield from cur.fetchall()
         for row in rows:
             print("{} - {} | {}".format(row['publish_date'], row['slug'], row['title']))
-            with open("{}.md".format(row['slug']), "w") as f:
+            with open("posts/{}.md".format(row['slug']), "w") as f:
                 content = """<!-- 
 .. title: {title}
 .. slug: {slug}
@@ -26,6 +31,7 @@ def go():
 
 {text}
 """
+                
                 f.write(content.format(
                     title=row['title'], 
                     slug=row['slug'], 
