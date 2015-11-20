@@ -21,7 +21,7 @@ content = """<!--
 .. title: {title}
 .. slug: {slug}
 .. date: {date}
-.. tags:
+.. tags: {tags}
 .. category: 
 .. link: 
 .. description: 
@@ -38,20 +38,39 @@ def go():
         os.makedirs('posts')
 
     pool = yield from aiopg.create_pool(dsn)
+
     with (yield from pool.cursor(cursor_factory=psycopg2.extras.DictCursor)) as cur:
         yield from cur.execute(select)
         rows = yield from cur.fetchall()
+        size = len(rows)
         curr = None
+        tags = []
+
         for i, row in enumerate(rows):
 
-            print("{} - {} | {}".format(row['publish_date'], row['pslug'], row['ptitle']))
-            with open("posts/{}.md".format(row['pslug']), "w") as f:
+            tags.append(row['ctitle'])
+
+            if(i+1 < size):
+                n = rows[i+1]
+                # If next is the same post, don't write the post yet
+                # Get all tags first
+                if (n['pslug'] == row['pslug']):
+                    continue
+
+
+            #print("{} - {} | {} {}".format(row['publish_date'], row['pslug'], row['ptitle'], row['cslug']))
+            #print(tags)
+
+            with open("posts/{}-{}.md".format(str(row['publish_date']).split(" ")[0], row['pslug']), "w") as f:
                 f.write(content.format(
                     title=row['ptitle'], 
                     slug=row['pslug'], 
                     date=row['publish_date'],
-                    text=row['content']
+                    text=row['content'],
+                    tags=", ".join(tags)
                 ))
+
+            tags = []
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(go())
