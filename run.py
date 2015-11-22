@@ -10,9 +10,9 @@ SELECT
     p.slug as pslug, p.content, p.title as ptitle, p.publish_date, c.slug as cslug, c.title as ctitle
 FROM blog_blogpost 
 AS p
-JOIN blog_blogpost_categories
+LEFT JOIN blog_blogpost_categories
 ON blog_blogpost_categories.blogpost_id = p.id
-JOIN blog_blogcategory
+LEFT JOIN blog_blogcategory
 AS c
 ON c.id = blog_blogpost_categories.blogcategory_id
 """
@@ -48,7 +48,8 @@ def go():
 
         for i, row in enumerate(rows):
 
-            tags.append(row['ctitle'])
+            if(row['ctitle']):
+                tags.append(row['ctitle'])
 
             if(i+1 < size):
                 n = rows[i+1]
